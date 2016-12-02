@@ -1,5 +1,5 @@
 /**
- * Code for Assignment 5 in UNCG's CSC 330 (Fall 2016).
+ * Code for Assignment 6 in UNCG's CSC 330 (Fall 2016).
  *
  * @author Steve Tate
  */

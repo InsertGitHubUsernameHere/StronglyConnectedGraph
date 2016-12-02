@@ -465,6 +465,45 @@ public class Graph {
              ;
     }
 
+    /**
+     * printGraph prints the graph to standard output in a readable format.
+     */
+    public void printGraph() {
+        for (Vertex v : vertexMap.values()) {
+            System.out.print(v.name+" -- ");
+            
+            if (v.adj.size() == 0) {
+                System.out.println("no edges out");
+            } else if (v.adj.size() == 1) {
+                System.out.println("edge out to:");
+            } else {
+                System.out.println("edges out to:");
+            }
+            
+            for (Edge e : v.adj) {
+                System.out.println("    "+e.dest.name);
+            }            
+        }
+    }
+
+    /**
+     * getTransposed() graph creates the transpose of the graph and returns
+     * it as a new graph. The transpose contains all of the vertices of the
+     * original graph, but edges are in the opposite direction (all other
+     * properties, such as edge cost, are preserved).
+     * @return the transposed graph
+     */
+    public Graph getTransposedGraph() {
+        Graph result = new Graph();
+        for (Vertex v : vertexMap.values()) {
+            result.getVertex(v.name);
+            for (Edge e : v.adj)
+                result.addEdge(e.dest.name, v.name, e.cost);
+        }
+        
+        return result;
+    }    
+    
     private void dfs_r(Vertex v) {
 //        System.out.println("  "+v.name);
         for (Edge e : v.adj) {
@@ -500,12 +539,67 @@ public class Graph {
         }
     }
 
-    public void printStronglyConnected() {
-        // IMPLEMENT THIS FOR ASSIGNMENT 6
-        // In addition to code in this method, you'll need a few other
-        // methods to make this work, and an additional data field in the class.
+    // private workhorse function for first dfs in strongly connected
+    // components algorithm (regular dfs pushing vertices on stack when
+    // finished with them
+    private void dfs_scc1(Vertex v, Stack<String> sccStack) {
+        for (Edge e : v.adj) {
+            if (e.dest.scratch == 0) {
+                e.dest.scratch = 1;
+                e.dest.prev = v;
+                dfs_scc1(e.dest, sccStack);
+            }
+        }
+        sccStack.push(v.name);
     }
 
+    // private workhorse function for second dfs in strongly connected
+    // components algorithm (called on transpose graph, but otherwise is
+    // a standard dfs printing out vertices when they are seen
+    private void dfs_scc2(Vertex v) {
+        System.out.println(v.name);
+        for (Edge e : v.adj) {
+            if (e.dest.scratch == 0) {
+                e.dest.scratch = 1;
+                e.dest.prev = v;
+                dfs_scc2(e.dest);
+            }
+        }
+    }
+
+    /**
+     * printStronglyConnected() prints out the strongly connected components
+     * of the graph. Uses Kosaraju's algorithm which has time complexity
+     * O(|V|+|E|).
+     */
+    public void printStronglyConnected() {
+        clearAll();
+
+        // Step 1: dfs on original graph, pushing vertex names on a stack
+        // in order of postorder traversal of dfs tree
+        Stack<String> sccStack = new Stack<>();
+        for (Vertex v : vertexMap.values()) {
+            if (v.scratch == 0) {
+                v.scratch = 1;
+                dfs_scc1(v, sccStack);
+            }
+        }
+
+        // Step 2: Compute the transpose of the graph
+        Graph transposed = getTransposedGraph();
+        
+        // Step 3: dfs on transposed graph, picking start vertices in order
+        // of popping off the stack created in Step 1
+        transposed.clearAll();
+        while (!sccStack.empty()) {
+            Vertex v = transposed.getVertex(sccStack.pop());
+            if (v.scratch == 0) {
+                System.out.println("\nComponent:");
+                v.scratch = 1;
+                transposed.dfs_scc2(v);
+            }
+        }
+    }
 
     /**
      * A main routine that: 1. Reads a file containing edges (supplied as a
