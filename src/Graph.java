@@ -503,7 +503,8 @@ public class Graph {
         
         return result;
     }    
-    
+
+    // Recursive workhorse function for basic depth first search.
     private void dfs_r(Vertex v) {
 //        System.out.println("  "+v.name);
         for (Edge e : v.adj) {
@@ -528,6 +529,12 @@ public class Graph {
         dfs_r(start);
     }
 
+    /**
+     * Prints connected components to standard output using depth-first search.
+     * Designed for undirected graphs, so really should only be called on
+     * graphs that have bidirectional edges (an edge from w to v whenever
+     * there is an edge from v to w.
+     */
     public void connected() {
         clearAll();
         for (Vertex v : vertexMap.values()) {
